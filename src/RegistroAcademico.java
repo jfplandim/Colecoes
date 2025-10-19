@@ -55,4 +55,92 @@ public class RegistroAcademico {
                 .map(Matricula::getNota)
                 .findFirst();
     }
+    //4. Remover uma matricula de um estudante
+    public void removerMatricula(int idEstudante, String codigoDisciplina){
+        //pega a lista de matriculas
+        List<Matricula> lista = matriculas.get(idEstudante);
+        //verifica se a lista existe
+        if(lista != null){
+            lista.removeIf(m -> m.getCodigoDisciplina().equals(codigoDisciplina));
+        }
+    }
+
+    //5. Media dos estudantes
+    public double mediaDoEstudante(int idEstudante){
+        List<Matricula> matriculasDoEstudante = matriculas.get(idEstudante);
+        if(matriculasDoEstudante == null || matriculasDoEstudante.isEmpty()){
+            return 0.0;
+        }
+        double somaDasNotas = 0.0;
+        for(Matricula matriculaAtual : matriculasDoEstudante){
+            somaDasNotas += matriculaAtual.getNota();
+        }
+        return somaDasNotas / matriculasDoEstudante.size();
+    }
+
+    //6. Media da disciplina
+    public double mediaDaDisciplina(String codigoDisciplina){
+        double somaDasNotas = 0.0;
+        int quantidadeDeNotas = 0;
+
+        for (List<Matricula> listaDeUmEstudante : matriculas.values()){
+            for(Matricula matriculaAtual : listaDeUmEstudante){
+                if (matriculaAtual.getCodigoDisciplina().equals(codigoDisciplina)){
+                    somaDasNotas += matriculaAtual.getNota();
+                    quantidadeDeNotas++;
+
+                }
+            }
+        }
+
+        if(quantidadeDeNotas > 0){
+            return somaDasNotas / quantidadeDeNotas;
+        } else {
+            return 0.0;
+        }
+    }
+
+    //7. Classe auxiliar para ajudar a calcular a proxima
+    class EstudanteComMedia {
+        private Estudante estudante;
+        private double media;
+
+        public EstudanteComMedia(Estudante estudante, double media) {
+            this.estudante = estudante;
+            this.media = media;
+        }
+
+        public Estudante getEstudante() {
+            return estudante;
+        }
+
+        public double getMedia() {
+            return media;
+        }
+    }
+
+    //8. Estudantes ordenados por média descrescente
+    public List<Estudante> topNEstudantesPorMedia(int N) {
+        List<EstudanteComMedia> estudantesComMedias = new ArrayList<>();
+
+        for (Integer idEstudante : matriculas.keySet()) {
+            Estudante estudante = listaEstudantes.obterEstudantePorIndice(idEstudante);
+
+            if (estudante != null) {
+                double media = mediaDoEstudante(idEstudante);
+                estudantesComMedias.add(new EstudanteComMedia(estudante, media));
+            }
+        }
+
+        estudantesComMedias.sort(Comparator.comparingDouble(EstudanteComMedia::getMedia).reversed());
+
+        List<Estudante> topEstudantes = new ArrayList<>();
+
+        int limite = Math.min(N, estudantesComMedias.size());
+        for (int i = 0; i < limite; i++) {
+            topEstudantes.add(estudantesComMedias.get(i).getEstudante());
+        }
+
+        return topEstudantes;
+    }
 }
