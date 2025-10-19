@@ -19,7 +19,7 @@ public class RegistroAcademico {
     // 1. Adicionar matrícula
     public void adicionarMatricula(int idEstudante, String codigoDisciplina, double nota) {
         if (!cadastroDisciplinas.verificarDisciplina(codigoDisciplina)) {
-            System.out.println("⚠️ Disciplina não cadastrada: " + codigoDisciplina);
+            System.out.println(" Disciplina não cadastrada: " + codigoDisciplina);
             return;
         }
         List<Matricula> lista = matriculas.getOrDefault(idEstudante, new ArrayList<>());
