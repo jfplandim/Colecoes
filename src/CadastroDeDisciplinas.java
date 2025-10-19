@@ -11,7 +11,7 @@ public class CadastroDeDisciplinas {
 
     public boolean adicionarDisciplina(Disciplina d) {
         if (disciplinas.contains(d)) {
-            System.out.println("⚠️ Disciplina duplicada detectada: " + d.getCodigo());
+            System.out.println(" Disciplina duplicada detectada: " + d.getCodigo());
             return false; // Não adiciona
         }
         disciplinas.add(d);
@@ -29,5 +29,4 @@ public class CadastroDeDisciplinas {
     public Set<Disciplina> obterTodasDisciplinas(){
         return disciplinas; // retorna em ordem de inserção
     }
-}
-
+}   
