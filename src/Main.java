@@ -1,129 +1,180 @@
-import java.util.*;
-import java.util.stream.Collectors;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
 
-        // 1. Estudantes
+        // 1. Instanciando objetos
         ListaDeEstudantes listaEstudantes = new ListaDeEstudantes();
-        listaEstudantes.adicionarEstudante(new Estudante(1, "Ana"));
-        listaEstudantes.adicionarEstudante(new Estudante(2, "Bruno"));
-        listaEstudantes.adicionarEstudante(new Estudante(3, "Carla"));
-        listaEstudantes.adicionarEstudante(new Estudante(4, "Diego"));
-        listaEstudantes.adicionarEstudante(new Estudante(5, "Elisa"));
-
-        // 2. Disciplinas
         CadastroDeDisciplinas cadastroDisciplinas = new CadastroDeDisciplinas();
-        cadastroDisciplinas.adicionarDisciplina(new Disciplina("MAT101", "Matemática"));
-        cadastroDisciplinas.adicionarDisciplina(new Disciplina("PRG201", "Programação"));
-        cadastroDisciplinas.adicionarDisciplina(new Disciplina("BD301", "Banco de Dados"));
-        cadastroDisciplinas.adicionarDisciplina(new Disciplina("EDF110", "Educação Física"));
-
-
-        // 3. Registro Acadêmico
         RegistroAcademico registro = new RegistroAcademico(listaEstudantes, cadastroDisciplinas);
-        registro.adicionarMatricula(1, "MAT101", 8.5);
-        registro.adicionarMatricula(1, "PRG201", 9.0);
-        registro.adicionarMatricula(2, "PRG201", 7.0);
-        registro.adicionarMatricula(2, "MAT101", 5.0);
-        registro.adicionarMatricula(3, "BD301", 6.5);
-        registro.adicionarMatricula(3, "MAT101", 7.5);
-        registro.adicionarMatricula(4, "PRG201", 8.0);
-        registro.adicionarMatricula(5, "EDF110", 10.0);
 
-        // 4. Saídas
-        // Lista de estudantes (ordem de cadastro)
-        System.out.println("== Lista de Estudantes (ordem de cadastro) ==");
-        for (int i = 0; i < 5; i++) {
-            System.out.println(listaEstudantes.obterEstudantePorIndice(i));
+        //2.Carregar os dados dos arquivos
+        carregarEstudantes("estudantes.csv", listaEstudantes);
+        carregarDisciplinas("disciplinas.csv", cadastroDisciplinas);
+        carregarMatriculas("matriculas.csv", registro);
+
+        System.out.println("\n--- RELATÓRIOS ACADÊMICOS ---");
+
+        // 3. Lista de estudantes (ordem de cadastro)
+        System.out.println("\n== Lista de Estudantes (ordem de cadastro) ==");
+        for(Estudante e : listaEstudantes.obterTodosEstudantes()){
+            System.out.println(e);
         }
 
-        // Lista de estudantes (ordenada)
+        // 4. Lista de estudantes (ordenada)
+        System.out.println("\n== Lista de Estudantes (ordenada) ==");
         listaEstudantes.ordenarEstudantesPorNome();
-        System.out.println("== Lista de Estudantes (ordenada) ==");
-        System.out.println(listaEstudantes.buscarEstudantesPorNome("").stream()
-                .map(Estudante::getNome).collect(Collectors.joining(", ")));
-
-        // Disciplinas (ordem de inserção)
-        System.out.println("== Disciplinas (inserção) ==");
-        System.out.println(cadastroDisciplinas.obterTodasDisciplinas().stream()
-                .map(Disciplina::getCodigo).collect(Collectors.joining(", ")));
-
-        // Duplicatas detectadas (já exibidas ao tentar adicionar duplicadas)
-
-        // Matrículas e médias individuais
-        System.out.println("== Matrículas ==");
-        for (int i = 0; i < 5; i++) {
-            Estudante e = listaEstudantes.obterEstudantePorIndice(i);
-            List<Matricula> matriculas = registro.obterMatriculas(e.getId());
-            double media = matriculas.stream().mapToDouble(Matricula::getNota).average().orElse(0);
-            String notas = matriculas.stream()
-                    .map(m -> m.getCodigoDisciplina() + "(" + m.getNota() + ")")
-                    .collect(Collectors.joining(", "));
-            System.out.println(e.getNome() + ": " + notas + " Média: " + media);
+        for(Estudante e : listaEstudantes.obterTodosEstudantes()){
+            System.out.println(e);
         }
 
-        // Médias por disciplina
-        System.out.println("== Médias por Disciplina ==");
-        Set<Disciplina> disciplinas = cadastroDisciplinas.obterTodasDisciplinas();
-        for (Disciplina d : disciplinas) {
-            double soma = 0;
-            int count = 0;
-            for (int i = 0; i < 5; i++) {
-                Optional<Double> nota = registro.obterNota(listaEstudantes.obterEstudantePorIndice(i).getId(), d.getCodigo());
-                if (nota.isPresent()) {
-                    soma += nota.get();
-                    count++;
+        // 5. Disciplinas (ordem de inserção)
+        System.out.println("\n== Disciplinas (inserção) ==");
+        for(Disciplina d : cadastroDisciplinas.obterTodasDisciplinas()){
+            System.out.print(d);
+
+        }
+
+        // 6. Duplicatas detectadas (já exibidas ao tentar adicionar duplicadas)
+        System.out.println("\n\n== Duplicatas detectadas na importação ==");
+        for(Disciplina d : cadastroDisciplinas.obterDisciplinasDuplicadas()){
+            System.out.print(d);
+        }
+
+       // 7. Matrículas e médias individuais
+        System.out.println("\n\n== Matrículas ==");
+        for(Estudante e : listaEstudantes.obterTodosEstudantes()){
+            List<Matricula> matriculasDoEstudante = registro.obterMatriculas(e.getId());
+            double media = registro.mediaDoEstudante(e.getId());
+
+            //lista temporaria para formatar
+            List<String> notasFormatadas = new ArrayList<>();
+
+            //formatar matriculas
+            for (Matricula m : matriculasDoEstudante) {
+                String formato = m.getCodigoDisciplina() + "(" + m.getNota() + ")";
+                notasFormatadas.add(formato);
+            }
+            String matriculasFormatadas = String.join(", ", notasFormatadas);
+            System.out.printf("%s: %s Média: %.2f\n", e.getNome(), matriculasFormatadas, media);
+        }
+
+        //8. Médias por disciplina
+        System.out.println("\n== Médias por Disciplina ==");
+        for (Disciplina d : cadastroDisciplinas.obterTodasDisciplinas()) {
+            double media = registro.mediaDaDisciplina(d.getCodigo());
+            System.out.printf("%s: %.2f\n", d.getCodigo(), media);
+        }
+
+        //9. Top 3 alunos por média
+        System.out.println("\n== Top 3 alunos por média ==");
+        List<Estudante> topAlunos = registro.topNEstudantesPorMedia(3);
+        int posicao = 1;
+        for(int i=1; i < 4; i++){
+            Estudante e = topAlunos.get(i-1);
+            System.out.printf("%d) %s - %.2f\n", i, e.getNome(), registro.mediaDoEstudante(e.getId()));
+        }
+
+
+        //10. Alunos com média >= 8.0
+        System.out.println("\n== Alunos com média >= 8.0 ==");
+        List<String> alunosMedia8 = new ArrayList<>();
+        for(Estudante e : listaEstudantes.obterTodosEstudantes()){
+            if(registro.mediaDoEstudante(e.getId()) >= 8.0){
+                alunosMedia8.add(e.getNome());
+            }
+        }
+        //juntar os nomes em uma string separada por virgula
+        String resultadoFinal1 = String.join(", ", alunosMedia8);
+        System.out.println(resultadoFinal1);
+
+        //11. Disciplinas com média < 6.0
+        System.out.println("\n== Disciplinas com média < 6.0 ==");
+        List<String> disciplinasMedia6 = new ArrayList<>();
+        for(Disciplina d : cadastroDisciplinas.obterTodasDisciplinas()){
+            if(registro.mediaDaDisciplina(d.getCodigo()) < 6.0){
+                disciplinasMedia6.add(d.getNome());
+            }
+        }
+        String resultadoFinal2 = String.join(", ", disciplinasMedia6);
+        System.out.println(resultadoFinal2);
+
+        //12.Exibir disciplinas com nota acima da média da disciplina.
+        System.out.println("\n== Extra: Notas Acima da Média da Disciplina (TODOS OS ALUNOS) ==");
+        for(Estudante e : listaEstudantes.obterTodosEstudantes()) {
+            if (e != null) {
+                List<Matricula> matriculasDoFoco = registro.obterMatriculas(e.getId());
+                for (Matricula matriculaAtual : matriculasDoFoco) {
+                    double notaAluno = matriculaAtual.getNota();
+                    double mediaDisciplina = registro.mediaDaDisciplina(matriculaAtual.getCodigoDisciplina());
+                    if (notaAluno > mediaDisciplina) {
+                        System.out.printf("%s na %s: Nota %.2f (Acima da Média %.2f)\n", e.getNome(), matriculaAtual.getCodigoDisciplina(), notaAluno, mediaDisciplina);
+                    }
                 }
             }
-            double mediaDisciplina = (count > 0) ? soma / count : 0;
-            System.out.println(d.getCodigo() + ": " + mediaDisciplina);
         }
 
-        // Top 3 alunos por média
-        System.out.println("== Top 3 alunos por média ==");
-        List<Estudante> topAlunos = listaEstudantes.buscarEstudantesPorNome("").stream()
-                .sorted((a, b) -> {
-                    double mediaA = registro.obterMatriculas(a.getId()).stream().mapToDouble(Matricula::getNota).average().orElse(0);
-                    double mediaB = registro.obterMatriculas(b.getId()).stream().mapToDouble(Matricula::getNota).average().orElse(0);
-                    return Double.compare(mediaB, mediaA);
-                })
-                .limit(3)
-                .collect(Collectors.toList());
-
-        for (int i = 0; i < topAlunos.size(); i++) {
-            Estudante e = topAlunos.get(i);
-            double media = registro.obterMatriculas(e.getId()).stream().mapToDouble(Matricula::getNota).average().orElse(0);
-            System.out.println((i + 1) + ") " + e.getNome() + " - " + media);
+        //13. Buscar Aluno Por Substring
+        System.out.println("\n== Extra: Buscando Aluno Por Substring ==");
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Digite a substring para buscar estudantes (ex: 'ru', 'ana', 'a'): ");
+        String termoBusca = scanner.nextLine();
+        List<Estudante> encontrados = listaEstudantes.buscarEstudantesPorNome(termoBusca);
+        System.out.printf("\n--- Resultados da busca por '%s' (%d encontrados) ---\n", termoBusca, encontrados.size());
+        if (encontrados.isEmpty()) {
+            System.out.println("Nenhum estudante encontrado.");
+        } else {
+            for(Estudante estudanteEncontrado : encontrados){
+                System.out.printf("%s\n", estudanteEncontrado);
+            }
         }
 
-        // Alunos com média >= 8.0
-        System.out.println("== Alunos com média >= 8.0 ==");
-        String acima8 = listaEstudantes.buscarEstudantesPorNome("").stream()
-                .filter(e -> registro.obterMatriculas(e.getId()).stream().mapToDouble(Matricula::getNota).average().orElse(0) >= 8.0)
-                .map(Estudante::getNome)
-                .collect(Collectors.joining(", "));
-        System.out.println(acima8.isEmpty() ? "(nenhuma)" : acima8);
+    }
 
-        // Disciplinas com média < 6.0
-        System.out.println("== Disciplinas com média < 6.0 ==");
-        String discMenor6 = disciplinas.stream()
-                .filter(d -> {
-                    double soma = 0;
-                    int count = 0;
-                    for (int i = 0; i < 5; i++) {
-                        Optional<Double> nota = registro.obterNota(listaEstudantes.obterEstudantePorIndice(i).getId(), d.getCodigo());
-                        if (nota.isPresent()) {
-                            soma += nota.get();
-                            count++;
-                        }
-                    }
-                    double media = (count > 0) ? soma / count : 0;
-                    return media < 6.0;
-                })
-                .map(Disciplina::getCodigo)
-                .collect(Collectors.joining(", "));
-        System.out.println(discMenor6.isEmpty() ? "(nenhuma)" : discMenor6);
+    //Metodos para carregar os arquivos
+    public static void carregarEstudantes(String nomeArquivo, ListaDeEstudantes lista) {
+        try (Scanner scanner = new Scanner(new File(nomeArquivo))) {
+            if (scanner.hasNextLine()) scanner.nextLine(); // Pula cabeçalho
+            while (scanner.hasNextLine()) {
+                String[] dados = scanner.nextLine().split(",");
+                if (dados.length == 2) {
+                    lista.adicionarEstudante(new Estudante(Integer.parseInt(dados[0]), dados[1]));
+                }
+            }
+        } catch (FileNotFoundException e) {
+            System.err.println("🚨 Erro: Arquivo de estudantes não encontrado: " + nomeArquivo);
+        }
+    }
+
+    public static void carregarDisciplinas(String nomeArquivo, CadastroDeDisciplinas cadastro) {
+        try (Scanner scanner = new Scanner(new File(nomeArquivo))) {
+            if (scanner.hasNextLine()) scanner.nextLine(); // Pula cabeçalho
+            while (scanner.hasNextLine()) {
+                String[] dados = scanner.nextLine().split(",");
+                if (dados.length == 2) {
+                    cadastro.adicionarDisciplina(new Disciplina(dados[0], dados[1]));
+                }
+            }
+        } catch (FileNotFoundException e) {
+            System.err.println("🚨 Erro: Arquivo de disciplinas não encontrado: " + nomeArquivo);
+        }
+    }
+
+    public static void carregarMatriculas(String nomeArquivo, RegistroAcademico registro) {
+        try (Scanner scanner = new Scanner(new File(nomeArquivo))) {
+            if (scanner.hasNextLine()) scanner.nextLine(); // Pula cabeçalho
+            while (scanner.hasNextLine()) {
+                String[] dados = scanner.nextLine().split(",");
+                if (dados.length == 3) {
+                    registro.adicionarMatricula(Integer.parseInt(dados[0]), dados[1], Double.parseDouble(dados[2]));
+                }
+            }
+        } catch (FileNotFoundException e) {
+            System.err.println("🚨 Erro: Arquivo de matrículas não encontrado: " + nomeArquivo);
+        }
     }
 }
-

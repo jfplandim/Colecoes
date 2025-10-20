@@ -69,7 +69,7 @@ public class RegistroAcademico {
         }
     }
 
-    //5. Media dos estudantes
+    //5. Media do estudante
     public double mediaDoEstudante(int idEstudante){
         List<Matricula> matriculasDoEstudante = matriculas.get(idEstudante);
         if(matriculasDoEstudante == null || matriculasDoEstudante.isEmpty()){

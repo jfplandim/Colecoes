@@ -31,4 +31,9 @@ public class Disciplina {
     public int hashCode() {
         return Objects.hash(codigo);
     }
+
+   @Override
+    public String toString(){
+        return codigo + ", " ;
+    }
 }

@@ -1,17 +1,21 @@
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.HashSet;
-
+import java.util.List;
 
 public class CadastroDeDisciplinas {
     private Set<Disciplina> disciplinas;
+    private List<Disciplina> disciplinaDuplicadas;
 
     public CadastroDeDisciplinas(){
-        this.disciplinas = new HashSet<>();
+        this.disciplinas = new LinkedHashSet<>();
+        this.disciplinaDuplicadas = new ArrayList<>();
     }
 
     public boolean adicionarDisciplina(Disciplina d) {
         if (disciplinas.contains(d)) {
             System.out.println(" Disciplina duplicada detectada: " + d.getCodigo());
+            disciplinaDuplicadas.add(d);
             return false; // Não adiciona
         }
         disciplinas.add(d);
@@ -28,5 +32,8 @@ public class CadastroDeDisciplinas {
     }
     public Set<Disciplina> obterTodasDisciplinas(){
         return disciplinas; // retorna em ordem de inserção
+    }
+    public List<Disciplina> obterDisciplinasDuplicadas(){
+        return disciplinaDuplicadas;
     }
 }   
