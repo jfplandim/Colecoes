@@ -35,4 +35,17 @@ public class ListaDeEstudantes {
     public void ordenarEstudantesPorNome(){
         Collections.sort(estudantes, Comparator.comparing(Estudante::getNome));
     }
+
+    public Estudante obterEstudantePorId(int id) {
+        for (Estudante estudante : estudantes) {
+            if (estudante.getId() == id) {
+                return estudante;
+            }
+        }
+        return null; // Retorna nulo se não encontrar
+    }
+
+    public List<Estudante> obterTodosEstudantes() {
+        return this.estudantes;
+    }
 }

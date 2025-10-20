@@ -128,7 +128,7 @@ public class RegistroAcademico {
         List<EstudanteComMedia> estudantesComMedias = new ArrayList<>();
 
         for (Integer idEstudante : matriculas.keySet()) {
-            Estudante estudante = listaEstudantes.obterEstudantePorIndice(idEstudante);
+            Estudante estudante = listaEstudantes.obterEstudantePorId(idEstudante);
 
             if (estudante != null) {
                 double media = mediaDoEstudante(idEstudante);
